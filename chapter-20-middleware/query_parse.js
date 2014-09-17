@@ -1,6 +1,6 @@
 var connect = require('connect'),
     qs = require('qs'),
-    url = require('url')
+    url = require('url'),
     app = connect();
 
 //app.use(qs);
