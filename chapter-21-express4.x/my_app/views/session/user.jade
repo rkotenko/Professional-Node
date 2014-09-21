@@ -1,0 +1,17 @@
+- if (session.user) {
+    p
+        span Hello 
+        span= session.user.name
+        span !
+    p
+        form(method="POST", action="/session")
+            input(type="hidden", name="_method", value="DELETE")
+            input(type="submit", value="Log out")
+
+- }
+- else {
+    p
+        a(href="/session/new") Login
+        span  or 
+        a(href="/users/new") Register
+- }
