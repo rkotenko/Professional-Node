@@ -1,0 +1,170 @@
+<html>
+    <head>
+        <title>Socket.IO example application</title>
+        <style>
+            #input {
+                width: 200px;
+            }
+            #messages {
+                position: fixed;
+                top: 40px;
+                bottom: 50px;
+                left: 8px;
+                right: 8px;
+                border: 1px solid #eeeeee;
+                padding: 8px;
+                overflow: hidden;
+            }
+            form {
+                position: fixed;
+                bottom: 0;
+            }
+            .message .when {
+                color: grey;
+            }
+            .message .from {
+                color: red;
+            }
+            .message .from.self {
+                color: green;
+            }
+            .message .avatar {
+                width: 80px;
+            }
+            .avatar-frame {
+                width: 0;
+                height: 0;
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        Your message:
+        <input type="text" id="input">
+        <div id="messages"></div>
+        <form action="/avatar" enctype="multipart/form-data" method="post" target="avatar-target" id="avatar-form">
+            <label for="avatar">Set avatar:</label>
+            <input type="file" id="avatar" name="avatar" />
+            <input type="submit" />    
+        </form>
+        
+        <iframe class="avatar-frame" name="avatar-target" id="avatar-target"></iframe>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var messagesElement = document.getElementById('messages');
+        var lastMessageElement = null;
+        var username;
+
+        function addMessage(message) {
+            var newMessageElement = document.createElement('div');
+
+            newMessageElement.className = "message";
+
+            if(message.when) {
+                message.when = new Date(message.when);
+            }
+
+            message.avatar = '/avatar?username=' + encodeURIComponent(message.from);
+            
+            // create the pieces of the message
+            ['avatar', 'when', 'from', 'message'].forEach(function (prop) {
+                var messageText = '';
+                var newPart = document.createElement('span');
+                newPart.className = prop;
+                
+                // avatar does not use messageText, but everything else does
+                if(prop !== 'avatar') {
+                    messageText = message[prop];
+                }
+                
+                // avatar gets an img child
+                if (prop === 'avatar') {
+                    var avatarImage = document.createElement('img');
+                    avatarImage.src = message.avatar;
+                    avatarImage.className = 'avatar';
+                    newPart.appendChild(avatarImage);
+                }
+                // from and when get braces around the messageText
+                else if(prop !== 'message') {
+                    messageText = '[' + messageText + ']'; 
+                    if(prop === 'from') {
+                        if(message[prop] === username) {
+                            newPart.className += ' self';
+                        }
+                    }
+                }
+
+                messageText += ' ';
+                var newPartText = document.createTextNode(messageText);
+                newPart.appendChild(newPartText);
+                newMessageElement.appendChild(newPart);
+            });
+
+            messagesElement.insertBefore(newMessageElement, lastMessageElement);
+            lastMessageElement = newMessageElement;
+        }
+
+        var socket = io('http://localhost:4000/chat');
+        socket.on('serverMessage', function (content) {
+            addMessage(content);
+        });
+
+        socket.on('login', function () {
+            username = prompt('What is your name?');
+            socket.emit('login', username);
+        });
+
+        socket.on('backlog', function(message) {
+            message.forEach(addMessage);
+        });
+
+        function sendCommand(command, args) {
+            if(command === 'j') {
+                socket.emit('join', args);
+            }
+            else {
+                alert('unknown command: ' + command);
+            }
+        }
+
+        function sendMessage(message) {
+            var commandMatch = message.match(/^\/(\w*)(.*)/);
+            if(commandMatch) {
+                sendCommand(commandMatch[1], commandMatch[2].trim());
+            }
+            else {
+                socket.emit('clientMessage', message);
+            }
+        }
+
+        var inputElement = document.getElementById('input');
+
+        input.onkeydown = function(keyEvent) {
+            if(keyEvent.keyCode === 13) {
+                sendMessage(inputElement.value);
+                inputElement.value = '';
+                return false;
+            }
+            else {
+                return true;
+            }
+        };
+    </script>
+    
+    <script>
+        // modify the form url to add the username or alert that they need to log in first
+        var form = document.getElementById('avatar-form');
+        form.onsubmit = function() {
+            if(!username) {
+                alert('You must first log in');   
+            }
+            else {
+                form.action = '/avatar?username=' + encodeURIComponent(username);
+                form.submit();
+                console.log('submitted form');
+            }
+            return false;
+        }
+    </script>
+    </body>
+</html>

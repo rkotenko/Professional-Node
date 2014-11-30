@@ -1,0 +1,16 @@
+extend ../layout
+block content
+    h1 Article
+
+    form(method="POST", action="/articles")
+        p 
+            label(for="title") Title <br />
+            input#title(name="title")
+    
+        p 
+            label(for="body") Body <br />
+            textarea#body(name="body")
+        
+        p 
+            input(type="submit", value="Create")
+        

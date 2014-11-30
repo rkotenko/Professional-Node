@@ -1,0 +1,13 @@
+{
+    "name": "couch-socketio-chat",
+    "version": "1.0.0",
+    "scripts": {
+        "debug": "DEBUG=socket.io:socket,socket.io:client node server-save.js"
+    },
+    "dependencies": {
+        "nano": "*",
+        "socket.io": "*",
+        "formidable": "*",
+        "bufferedstream": "*"
+    }
+}
